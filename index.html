@@ -143,8 +143,6 @@
     
   </style>
   <meta name="theme-color" content="#000000">
-  <!-- Load TurboWarp Scaffolding library from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@turbowarp/scaffolding@0.6.3/dist/scaffolding-min.js"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -174,7 +172,9 @@
     </details>
   </div>
 
+  <!-- Load script.js which contains the bundled Scaffolding library -->
   <script src="script.js"></script>
+  
   <script>
     const appElement = document.getElementById('app');
     const launchScreen = document.getElementById('launch');
@@ -198,195 +198,226 @@
     };
     const interpolate = (a, b, t) => a + t * (b - a);
 
-    try {
-      setProgress(0.1);
-
-      const scaffolding = new Scaffolding.Scaffolding();
-      scaffolding.width = 480;
-      scaffolding.height = 360;
-      scaffolding.resizeMode = "preserve-ratio";
-      scaffolding.editableLists = false;
-      scaffolding.usePackagedRuntime = true;
-      scaffolding.setup();
-      scaffolding.appendTo(appElement);
-
-      const vm = scaffolding.vm;
-      window.scaffolding = scaffolding;
-      window.vm = scaffolding.vm;
-      window.Scratch = {
-        vm,
-        renderer: vm.renderer,
-        audioEngine: vm.runtime.audioEngine,
-        bitmapAdapter: vm.runtime.v2BitmapAdapter,
-        videoProvider: vm.runtime.ioDevices.video.provider
-      };
-
-      scaffolding.setUsername("player####".replace(/#/g, () => Math.floor(Math.random() * 10)));
-      scaffolding.setAccentColor("#ff4c4c");
+    // Wait for Scaffolding to be defined before proceeding
+    const initializeApp = () => {
+      if (typeof Scaffolding === 'undefined') {
+        console.warn('Scaffolding not yet loaded, retrying in 100ms...');
+        setTimeout(initializeApp, 100);
+        return;
+      }
 
       try {
-        scaffolding.addCloudProvider(new Scaffolding.Cloud.WebSocketProvider(["wss://clouddata.turbowarp.org","wss://clouddata.turbowarp.xyz"], "781701424"));
-      } catch (error) {
-        console.error(error);
-      }
+        setProgress(0.1);
 
-      const greenFlagButton = document.createElement('img');
-      greenFlagButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16.63 17.5"><path d="M.75 2a6.44 6.44 0 017.69 0h0a6.44 6.44 0 007.69 [...]');
-      greenFlagButton.className = 'control-button control-button-highlight green-flag-button';
-      greenFlagButton.draggable = false;
-      greenFlagButton.addEventListener('click', () => {
-        scaffolding.greenFlag();
-      });
-      scaffolding.addEventListener('PROJECT_RUN_START', () => {
-        greenFlagButton.classList.add('active');
-      });
-      scaffolding.addEventListener('PROJECT_RUN_STOP', () => {
-        greenFlagButton.classList.remove('active');
-      });
-      scaffolding.addControlButton({
-        element: greenFlagButton,
-        where: 'top-left'
-      });
+        const scaffolding = new Scaffolding.Scaffolding();
+        scaffolding.width = 480;
+        scaffolding.height = 360;
+        scaffolding.resizeMode = "preserve-ratio";
+        scaffolding.editableLists = false;
+        scaffolding.usePackagedRuntime = true;
+        scaffolding.setup();
+        scaffolding.appendTo(appElement);
 
-      if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
-        let isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
-        const fullscreenButton = document.createElement('img');
-        fullscreenButton.draggable = false;
-        fullscreenButton.className = 'control-button fullscreen-button';
-        fullscreenButton.addEventListener('click', () => {
-          if (isFullScreen) {
-            if (document.exitFullscreen) {
-              document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-              document.webkitExitFullscreen();
-            }
-          } else {
-            if (document.body.requestFullscreen) {
-              document.body.requestFullscreen();
-            } else if (document.body.webkitRequestFullscreen) {
-              document.body.webkitRequestFullscreen();
-            }
-          }
-        });
-        const otherControlsExist = true;
-        const fillColor = otherControlsExist ? '#575E75' : '#ffffff';
-        const updateFullScreen = () => {
-          isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
-          document.body.classList.toggle('is-fullscreen', isFullScreen);
-          if (isFullScreen) {
-            fullscreenButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><g fill="' + fillColor + '" fill-rule="evenodd"><path[...]');
-          } else {
-            fullscreenButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><g fill="' + fillColor + '" fill-rule="evenodd"><path[...]');
-          }
+        const vm = scaffolding.vm;
+        window.scaffolding = scaffolding;
+        window.vm = scaffolding.vm;
+        window.Scratch = {
+          vm,
+          renderer: vm.renderer,
+          audioEngine: vm.runtime.audioEngine,
+          bitmapAdapter: vm.runtime.v2BitmapAdapter,
+          videoProvider: vm.runtime.ioDevices.video.provider
         };
-        updateFullScreen();
-        document.addEventListener('fullscreenchange', updateFullScreen);
-        document.addEventListener('webkitfullscreenchange', updateFullScreen);
-        if (otherControlsExist) {
-          fullscreenButton.className = 'control-button fullscreen-button';
-          scaffolding.addControlButton({
-            element: fullscreenButton,
-            where: 'top-right'
-          });
-        } else {
-          fullscreenButton.className = 'standalone-fullscreen-button';
-          document.body.appendChild(fullscreenButton);
+
+        scaffolding.setUsername("player####".replace(/#/g, () => Math.floor(Math.random() * 10)));
+        scaffolding.setAccentColor("#ff4c4c");
+
+        try {
+          scaffolding.addCloudProvider(new Scaffolding.Cloud.WebSocketProvider(["wss://clouddata.turbowarp.org","wss://clouddata.turbowarp.xyz"], "781701424"));
+        } catch (error) {
+          console.error(error);
         }
+
+        const greenFlagButton = document.createElement('img');
+        greenFlagButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16.63 17.5"><path d="M.75 2a6.44 6.44 0 017.69 0h0a6.44 6.44 0 007.69 [...]');
+        greenFlagButton.className = 'control-button control-button-highlight green-flag-button';
+        greenFlagButton.draggable = false;
+        greenFlagButton.addEventListener('click', () => {
+          scaffolding.greenFlag();
+        });
+        scaffolding.addEventListener('PROJECT_RUN_START', () => {
+          greenFlagButton.classList.add('active');
+        });
+        scaffolding.addEventListener('PROJECT_RUN_STOP', () => {
+          greenFlagButton.classList.remove('active');
+        });
+        scaffolding.addControlButton({
+          element: greenFlagButton,
+          where: 'top-left'
+        });
+
+        if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
+          let isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+          const fullscreenButton = document.createElement('img');
+          fullscreenButton.draggable = false;
+          fullscreenButton.className = 'control-button fullscreen-button';
+          fullscreenButton.addEventListener('click', () => {
+            if (isFullScreen) {
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+              }
+            } else {
+              if (document.body.requestFullscreen) {
+                document.body.requestFullscreen();
+              } else if (document.body.webkitRequestFullscreen) {
+                document.body.webkitRequestFullscreen();
+              }
+            }
+          });
+          const otherControlsExist = true;
+          const fillColor = otherControlsExist ? '#575E75' : '#ffffff';
+          const updateFullScreen = () => {
+            isFullScreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            document.body.classList.toggle('is-fullscreen', isFullScreen);
+            if (isFullScreen) {
+              fullscreenButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><g fill="' + fillColor + '" fill-rule="evenodd"><path[...]');
+            } else {
+              fullscreenButton.src = 'data:image/svg+xml,' + encodeURIComponent('<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><g fill="' + fillColor + '" fill-rule="evenodd"><path[...]');
+            }
+          };
+          updateFullScreen();
+          document.addEventListener('fullscreenchange', updateFullScreen);
+          document.addEventListener('webkitfullscreenchange', updateFullScreen);
+          if (otherControlsExist) {
+            fullscreenButton.className = 'control-button fullscreen-button';
+            scaffolding.addControlButton({
+              element: fullscreenButton,
+              where: 'top-right'
+            });
+          } else {
+            fullscreenButton.className = 'standalone-fullscreen-button';
+            document.body.appendChild(fullscreenButton);
+          }
+        }
+
+        vm.setTurboMode(false);
+        if (vm.setInterpolation) vm.setInterpolation(false);
+        if (vm.setFramerate) vm.setFramerate(30);
+        if (vm.renderer.setUseHighQualityRender) vm.renderer.setUseHighQualityRender(false);
+        if (vm.setRuntimeOptions) vm.setRuntimeOptions({
+          fencing: true,
+          miscLimits: true,
+          maxClones: 300,
+        });
+        if (vm.setCompilerOptions) vm.setCompilerOptions({
+          enabled: true,
+          warpTimer: false
+        });
+        if (vm.renderer.setMaxTextureDimension) vm.renderer.setMaxTextureDimension(2048);
+
+        // enforcePrivacy threat model only makes sense in the editor
+        if (vm.runtime.setEnforcePrivacy) vm.runtime.setEnforcePrivacy(false);
+
+        if (typeof ScaffoldingAddons !== 'undefined') {
+          ScaffoldingAddons.run(scaffolding, {"gamepad":false,"pointerlock":false,"specialCloudBehaviors":false,"unsafeCloudBehaviors":false,"pause":false});
+        }
+
+        scaffolding.setExtensionSecurityManager({
+          getSandboxMode: () => 'unsandboxed',
+          canLoadExtensionFromProject: () => true
+        });
+        for (const extension of []) {
+          vm.extensionManager.loadExtensionURL(extension);
+        }
+
+      } catch (e) {
+        handleError(e);
       }
+    };
 
-      vm.setTurboMode(false);
-      if (vm.setInterpolation) vm.setInterpolation(false);
-      if (vm.setFramerate) vm.setFramerate(30);
-      if (vm.renderer.setUseHighQualityRender) vm.renderer.setUseHighQualityRender(false);
-      if (vm.setRuntimeOptions) vm.setRuntimeOptions({
-        fencing: true,
-        miscLimits: true,
-        maxClones: 300,
-      });
-      if (vm.setCompilerOptions) vm.setCompilerOptions({
-        enabled: true,
-        warpTimer: false
-      });
-      if (vm.renderer.setMaxTextureDimension) vm.renderer.setMaxTextureDimension(2048);
-
-      // enforcePrivacy threat model only makes sense in the editor
-      if (vm.runtime.setEnforcePrivacy) vm.runtime.setEnforcePrivacy(false);
-
-      if (typeof ScaffoldingAddons !== 'undefined') {
-        ScaffoldingAddons.run(scaffolding, {"gamepad":false,"pointerlock":false,"specialCloudBehaviors":false,"unsafeCloudBehaviors":false,"pause":false});
-      }
-
-      scaffolding.setExtensionSecurityManager({
-        getSandboxMode: () => 'unsandboxed',
-        canLoadExtensionFromProject: () => true
-      });
-      for (const extension of []) {
-        vm.extensionManager.loadExtensionURL(extension);
-      }
-
-    } catch (e) {
-      handleError(e);
-    }
+    // Start initialization
+    initializeApp();
   </script>
   
   
     <script>
       const getProjectData = (function() {
-        const storage = scaffolding.storage;
-        storage.onprogress = (total, loaded) => {
-          setProgress(interpolate(0.2, 0.98, loaded / total));
+        // Wait for scaffolding to be defined
+        const waitForScaffolding = () => {
+          return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+              if (typeof scaffolding !== 'undefined' && scaffolding && scaffolding.storage) {
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 50);
+          });
         };
-        
-        storage.addWebStore(
-          [
-            storage.AssetType.ImageVector,
-            storage.AssetType.ImageBitmap,
-            storage.AssetType.Sound,
-            storage.AssetType.Font
-          ].filter(i => i),
-          (asset) => new URL('./assets/' + asset.assetId + '.' + asset.dataFormat, location).href
-        );
+
         return () => new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = () => {
-          resolve(xhr.response);
-        };
-        xhr.onerror = () => {
-          if (location.protocol === 'file:') {
-            reject(new Error('Zip environment must be used on a website, not on a local file. To fix this error, use the "Plain HTML" environment instead.'));
-          } else {
-            reject(new Error('Request to load project data failed.'));
-          }
-        };
-        xhr.onprogress = (e) => {
-          if (e.lengthComputable) {
-            setProgress(interpolate(0.1, 0.2, e.loaded / e.total));
-          }
-        };
-        xhr.responseType = 'arraybuffer';
-        xhr.open('GET', "./assets/project.json");
-        xhr.send();
-      });
+          waitForScaffolding().then(() => {
+            const storage = scaffolding.storage;
+            storage.onprogress = (total, loaded) => {
+              setProgress(interpolate(0.2, 0.98, loaded / total));
+            };
+            
+            storage.addWebStore(
+              [
+                storage.AssetType.ImageVector,
+                storage.AssetType.ImageBitmap,
+                storage.AssetType.Sound,
+                storage.AssetType.Font
+              ].filter(i => i),
+              (asset) => new URL('./assets/' + asset.assetId + '.' + asset.dataFormat, location).href
+            );
+
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+              resolve(xhr.response);
+            };
+            xhr.onerror = () => {
+              if (location.protocol === 'file:') {
+                reject(new Error('Zip environment must be used on a website, not on a local file. To fix this error, use the "Plain HTML" environment instead.'));
+              } else {
+                reject(new Error('Request to load project data failed.'));
+              }
+            };
+            xhr.onprogress = (e) => {
+              if (e.lengthComputable) {
+                setProgress(interpolate(0.1, 0.2, e.loaded / e.total));
+              }
+            };
+            xhr.responseType = 'arraybuffer';
+            xhr.open('GET', "./assets/project.json");
+            xhr.send();
+          }).catch(reject);
+        });
       })();
     </script>
   <script>
     const run = async () => {
-      const projectData = await getProjectData();
-      await scaffolding.loadProject(projectData);
-      setProgress(1);
-      loadingScreen.hidden = true;
-      if (true) {
-        scaffolding.start();
-      } else {
-        launchScreen.hidden = false;
-        launchScreen.addEventListener('click', () => {
-          launchScreen.hidden = true;
+      try {
+        const projectData = await getProjectData();
+        await scaffolding.loadProject(projectData);
+        setProgress(1);
+        loadingScreen.hidden = true;
+        if (true) {
           scaffolding.start();
-        });
-        launchScreen.focus();
+        } else {
+          launchScreen.hidden = false;
+          launchScreen.addEventListener('click', () => {
+            launchScreen.hidden = true;
+            scaffolding.start();
+          });
+          launchScreen.focus();
+        }
+      } catch (e) {
+        handleError(e);
       }
     };
-    run().catch(handleError);
+    run();
   </script>
 </body>
 </html>
